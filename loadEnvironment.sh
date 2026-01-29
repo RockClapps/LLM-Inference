@@ -1,3 +1,3 @@
 #!/bin/bash
 
-NIXPKGS_ALLOW_UNFREE=1 nix-shell
+NIXPKGS_ALLOW_UNFREE=1 nix-shell --pure
