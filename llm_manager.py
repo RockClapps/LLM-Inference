@@ -16,14 +16,12 @@ def guess_value(context, answer, model=model, prompt=prompt, think=False, seed=-
         options = {"seed": seed}
 
     prediction = generate(
-        model=model, prompt=prompt, think=think,
+        model=model, prompt=model_input, think=think,
         options=options)
-
-    san_prediction = sanatize_model_output(prediction)
-    return san_prediction == answer
+    return prediction.get('response')
 
 def sanatize_model_output(output):
-    ans = output.response.lower()
+    ans = output.lower()
     ans = ans.split(" ")
     ans = ans[0]
     ans = ans.split("\n")
