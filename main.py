@@ -9,7 +9,7 @@ import random
 # random.seed(1)
 reddust_file = 'reddust/gender.csv'
 model = 'llama3.1:8b'
-prompt = '''Having read the above posts, please infer the gender of the person who wrote them. Please only respond with "m" or "f". '''
+prompt = '''Having read the above posts, please infer the gender of the person who wrote them. Please only respond with "m" or "f".'''
 max_posts = 99999
 num_guesses = 10
 output_file = 'output.csv'
@@ -48,12 +48,14 @@ def get_posts_from_user(username):
                     posts.append(x)
     return posts
 
-def export_to(file, num_posts, posts, prompt, real_answer, answers_most, answers):
+def export_to(file, postid, username, num_posts, posts, prompt, real_answer, answers_most, answers):
     if not os.path.exists(file):
         Headfile = open(file, "w")
-        Headfile.write("num_posts,posts,prompt,real_answer,correct,answers_most,answers\n")
+        Headfile.write("postid,username,num_posts,posts,prompt,real_answer,correct,answers_most,answers\n")
         Headfile.close()
     file = open(file, "a")
+    file.write(postid + ",")
+    file.write(username + ",")
     file.write(str(num_posts) + ",")
     file.write(posts.replace("\n\n\n\n", "|").replace(",", "[comma]") + ",")
     file.write(prompt.replace(",", "[comma]") + ",")
@@ -92,5 +94,5 @@ for values in list(zip(sample['postid'], sample['answer'])):
         print("WE WON :)")
     else:
         print("WE LOST :(")
-    export_to(output_file, len(random_posts), posts, prompt, answer, consensus, guesses)
+    export_to(output_file, postid, username, len(random_posts), posts, prompt, answer, consensus, guesses)
 
