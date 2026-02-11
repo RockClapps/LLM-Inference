@@ -94,5 +94,5 @@ for values in list(zip(sample['postid'], sample['answer'])):
         print("WE WON :)")
     else:
         print("WE LOST :(")
-    export_to(output_file, postid, username, len(random_posts), posts, prompt, answer, consensus, guesses)
+    export_to(output_file, postid, user, len(random_posts), posts, prompt, answer, consensus, guesses)
 
