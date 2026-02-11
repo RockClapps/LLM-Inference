@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./venv/bin/python main.py
+python main.py
