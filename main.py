@@ -55,13 +55,13 @@ def export_to(file, num_posts, posts, prompt, real_answer, answers_most, answers
         Headfile.close()
     file = open(file, "a")
     file.write(str(num_posts) + ",")
-    file.write(posts.replace("\n\n\n\n", "|") + ",")
-    file.write(prompt + ",")
+    file.write(posts.replace("\n\n\n\n", "|").replace(",", "[comma]") + ",")
+    file.write(prompt.replace(",", "[comma]") + ",")
     file.write(real_answer + ",")
     file.write(str(real_answer == answers_most) + ",")
-    file.write(answers_most + ",")
+    file.write(answers_most.replace(",", "[comma]") + ",")
     for x in answers:
-        file.write(x + "|")
+        file.write(x.replace(",", "[comma]") + "|")
     file.write("\n")
 
 def most_common(lst):
