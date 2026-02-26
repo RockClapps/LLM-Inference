@@ -15,6 +15,8 @@ pkgs.mkShellNoCC {
     python312Packages.huggingface-hub
     python312Packages.pandas
     python312Packages.pyarrow
+
+    tmux
   ];
 
   OLLAMA_HOST="127.0.0.1:11435";
