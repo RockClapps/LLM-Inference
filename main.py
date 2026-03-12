@@ -29,10 +29,10 @@ def find_post_in_reddust(postid):
     return reddust_data.loc[ postid in reddust_data['postid'] ]
 
 def find_user_in_pushshift(userid):
-    for j in range(len(filelist)):
-        name = filelist[j]
+    for j in range(len(parquet_sample)):
+        name = parquet_sample[j]
         if name.endswith(".parquet"):
-            print("%d/%d files" % (j, len(filelist)))
+            print("%d/%d files" % (j, len(parquet_sample)))
             data = pd.read_parquet(pushshift_directory + name)
             user = data.loc[data['id'] == userid]
             username = user['author'].values
@@ -44,10 +44,10 @@ def find_user_in_pushshift(userid):
 
 def get_posts_from_user(username):
     posts = []
-    for j in range(len(filelist)):
-        name = filelist[j]
+    for j in range(len(parquet_sample)):
+        name = parquet_sample[j]
         if name.endswith(".parquet"):
-            print("%d/%d files" % (j, len(filelist)))
+            print("%d/%d files" % (j, len(parquet_sample)))
             data = pd.read_parquet(pushshift_directory + name)
             post = data.loc[data['author'].values == username]
             if not post.empty:
