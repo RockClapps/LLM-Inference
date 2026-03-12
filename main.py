@@ -10,6 +10,7 @@ import random
 reddust_file = 'reddust/gender.csv'
 model = 'llama3.1:8b'
 prompt = '''Having read the above posts, please infer the gender of the person who wrote them. Please only respond with "m" or "f".'''
+parquet_number_sample = 5
 max_posts = 10
 enforce_min_posts = False
 num_guesses = 10
@@ -21,19 +22,17 @@ pushshift_directory = 'pushshift/data/'
 reddust_data = pd.read_csv(reddust_file)
 
 filelist = os.listdir(pushshift_directory)
-filelist = filelist[:len(filelist)//10] # Shorten for testing convenience
 
-parquet_sample = random.sample(filelist, len(filelist)) # Randomize data order
-
-def find_post_in_reddust(postid):
-    return reddust_data.loc[ postid in reddust_data['postid'] ]
+def get_parquet_sample():
+    offset = random.randint(0, len(filelist) - parquet_number_sample)
+    return filelist[offset:offset + parquet_number_sample]
 
 def find_user_in_pushshift(userid):
     for j in range(len(parquet_sample)):
-        name = parquet_sample[j]
-        if name.endswith(".parquet"):
+        filename = parquet_sample[j]
+        if filename.endswith(".parquet"):
             print("%d/%d files" % (j, len(parquet_sample)))
-            data = pd.read_parquet(pushshift_directory + name)
+            data = pd.read_parquet(pushshift_directory + filename)
             user = data.loc[data['id'] == userid]
             username = user['author'].values
             if not user.empty:
@@ -45,10 +44,10 @@ def find_user_in_pushshift(userid):
 def get_posts_from_user(username):
     posts = []
     for j in range(len(parquet_sample)):
-        name = parquet_sample[j]
-        if name.endswith(".parquet"):
+        filename = parquet_sample[j]
+        if filename.endswith(".parquet"):
             print("%d/%d files" % (j, len(parquet_sample)))
-            data = pd.read_parquet(pushshift_directory + name)
+            data = pd.read_parquet(pushshift_directory + filename)
             post = data.loc[data['author'].values == username]
             if not post.empty:
                 for x in post['title'].values:
@@ -125,13 +124,14 @@ def find_post_in_reddust(postid):
         return ans['answer'].values[0]
     return None
 
+parquet_sample = get_parquet_sample()
 reddust_data['postid'] = reddust_data['postid'].str[2:]
 usednames = []
 for i in range(len(parquet_sample)):
-    name = parquet_sample[i]
-    if name.endswith(".parquet"):
+    filename = parquet_sample[i]
+    if filename.endswith(".parquet"):
         print("%d/%d files" % (i+1, len(parquet_sample)))
-        data = pd.read_parquet(pushshift_directory + name)
+        data = pd.read_parquet(pushshift_directory + filename)
         data = data.loc[ data['author'] != "" ]
         usersample = data.sample(frac=1)
         for author in list(usersample['author']):
