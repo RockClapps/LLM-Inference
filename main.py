@@ -14,6 +14,7 @@ max_posts = 10
 enforce_min_posts = False
 num_guesses = 10
 output_file = 'output.csv'
+errors_file = 'errors.csv'
 
 pushshift_directory = 'pushshift/data/'
 
@@ -86,6 +87,20 @@ def export_to(file, postid, username, num_posts, posts, model, prompt, real_answ
     file.write("\n")
     file.close()
 
+def write_error(file, username, postid1, value1, postid2, value2):
+    if not os.path.exists(file):
+        Headfile = open(file, "w")
+        Headfile.write("username,postid1,value1,postid2,value2\n")
+        Headfile.close()
+    file = open(file, "a")
+    file.write(username + ",")
+    file.write(postid1 + ",")
+    file.write(value1 + ",")
+    file.write(postid2 + ",")
+    file.write(value2)
+    file.write("\n")
+    file.close()
+
 def most_common(lst):
     counts = {}
     for item in lst:
@@ -132,6 +147,7 @@ for i in range(len(parquet_sample)):
                         print("CONFLICTING DATASET VALUE DETECTED")
                         print("%s: %s" % (postid, answer))
                         print("%s: %s" % (p, truthFromData))
+                        write_error(errors_file, author, postid, answer, p, truthFromData)
                         print("continuing...")
                         answer = ''
                         break
