@@ -1,6 +1,11 @@
+import sys
 import pandas as pd
 
-file = "output-gemma.csv"
+if len(sys.argv) < 2:
+    print("Please provide a file argument")
+    exit(1)
+
+file = sys.argv[1]
 
 data = pd.read_csv(file)
 
