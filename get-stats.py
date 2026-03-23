@@ -27,6 +27,11 @@ def get_inconclusive_answers(llm_answers, possible_answers):
         x = x.replace("{newline}", "").strip()
         if x not in possible_answers:
             count += 1
+            print(x)
+            print()
+            print()
+            print()
+            print()
     return count/len(sp)
 data["proportion_of_guesses_inconclusive"] = data["answers"].apply((lambda x:
                                                                     get_inconclusive_answers(x, ["m", "f"])))
@@ -60,9 +65,9 @@ print("Percent incorrect given female: %f" % (female_incorrect/num_female))
 print()
 
 print("Controlling for male and female proportions...")
-sample = 100
-males_sample = all_males.sample(sample, replace=True)
-females_sample = all_females.sample(sample, replace=True)
+sample = min(num_male, num_female)//2
+males_sample = all_males.sample(sample)
+females_sample = all_females.sample(sample)
 male_correct = len(males_sample.loc[data['correct'] == True])
 male_incorrect = len(males_sample.loc[data['correct'] == False])
 female_correct = len(females_sample.loc[data['correct'] == True])
