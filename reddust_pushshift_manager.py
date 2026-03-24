@@ -58,7 +58,7 @@ def find_post_in_reddust(postid, reddust_data):
 def collect_data(reddust_file, model, prompt, prompt_catagories,
                  prompt_catagories_reddust_map, parquet_number_sample, max_posts,
                  enforce_min_posts, num_guesses, output_file, errors_file,
-                 random_seed=None):
+                 temperature=1, random_seed=None):
 
     if random_seed is not None:
         random.seed(random_seed)
@@ -110,15 +110,19 @@ def collect_data(reddust_file, model, prompt, prompt_catagories,
                 guesses = []
                 for i in range(num_guesses):
                     guess = llm_manager.guess_value(posts, model, prompt,
-                                                    prompt_catagories)
+                                                    prompt_catagories,
+                                                    temperature=temperature)
                     guesses.append(guess)
                 extracted_guesses = [llm_manager.extract_guess(x, prompt_catagories) for x in guesses]
-                consensus = most_common(extracted_guesses)
+                consensus = llm_manager.most_common_guess(extracted_guesses)
                 mapped_answer = prompt_catagories_reddust_map[answer]
                 if consensus == mapped_answer:
                     print("WE WON :)")
                 else:
                     print("WE LOST :(")
-                mdm.export_to(output_file, postid, author, len(random_posts), posts,
-                              model, prompt, mapped_answer, consensus, guesses)
+                mdm.export_to(output_file, postid, author, len(random_posts), model,
+                              temperature, mapped_answer, consensus,
+                              llm_manager.insert_catagories_to_prompt(prompt,
+                                                                      prompt_catagories),
+                              posts, guesses)
 
