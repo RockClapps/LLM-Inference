@@ -1,4 +1,6 @@
 import os
+import pandas as pd
+import llm_manager
 
 def sanitize_for_csv(string):
     string = string.replace("|", "{bar}")
@@ -12,21 +14,22 @@ def unsanitize_from_csv(string):
     string = string.replace("{newline}", "\n")
     return string
 
-def export_to(file, postid, username, num_posts, posts, model, prompt, real_answer, answers_most, answers):
+def export_to(file, postid, username, num_posts, model, temperature, real_answer, answers_consensus, prompt, posts, answers):
     if not os.path.exists(file):
         Headfile = open(file, "w")
-        Headfile.write("postid,username,num_posts,posts,model,prompt,real_answer,correct,answers_most,answers\n")
+        Headfile.write("postid,username,num_posts,model,temperature,real_answer,correct,answers_most,prompt,posts,answers\n")
         Headfile.close()
     file = open(file, "a")
     file.write(postid + ",")
     file.write(username + ",")
     file.write(str(num_posts) + ",")
-    file.write(sanitize_for_csv(posts).replace("{newline}{newline}{newline}{newline}", "|") + ",")
     file.write(model + ",")
-    file.write(sanitize_for_csv(prompt) + ",")
+    file.write(str(temperature) + ",")
     file.write(real_answer + ",")
-    file.write(str(real_answer == answers_most) + ",")
-    file.write(sanitize_for_csv(answers_most) + ",")
+    file.write(str(real_answer == answers_consensus) + ",")
+    file.write(sanitize_for_csv(answers_consensus) + ",")
+    file.write(sanitize_for_csv(prompt) + ",")
+    file.write(sanitize_for_csv(posts).replace("{newline}{newline}{newline}{newline}", "|") + ",")
     for x in answers:
         file.write(sanitize_for_csv(x) + "|")
     file.write("\n")
@@ -45,3 +48,35 @@ def write_error(file, username, postid1, value1, postid2, value2):
     file.write(value2)
     file.write("\n")
     file.close()
+
+def most_common(lst):
+    counts = {}
+    for item in lst:
+        counts[item] = counts.get(item, 0) + 1
+    return max(counts, key=counts.get)
+
+def collect_data(inputfile, model, prompt, prompt_catagories,
+                 prompt_catagories_reddust_map, num_guesses, output_file,
+                 temperature=1):
+    data = pd.read_csv(inputfile)
+    for i, datum in data.iterrows():
+        print("%d/%d" % (i+1, len(data.index)))
+        guesses = []
+        for i in range(num_guesses):
+            guess = llm_manager.guess_value(datum["posts"], model, prompt,
+                                            prompt_catagories,
+                                            temperature=temperature)
+            guesses.append(guess)
+        extracted_guesses = [llm_manager.extract_guess(x, prompt_catagories) for x in guesses]
+        consensus = llm_manager.most_common_guess(extracted_guesses)
+        mapped_answer = prompt_catagories_reddust_map[datum["real_answer"]]
+        if consensus == mapped_answer:
+            print("WE WON :)")
+        else:
+            print("WE LOST :(")
+
+        export_to(output_file, datum["postid"], datum["username"],
+                  datum["num_posts"], model, temperature, datum["real_answer"],
+                  consensus, llm_manager.insert_catagories_to_prompt(prompt,
+                                                                     prompt_catagories),
+                  datum["posts"], guesses)
