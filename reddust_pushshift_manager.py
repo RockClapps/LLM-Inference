@@ -36,12 +36,6 @@ def get_posts_from_user(username, parquet_sample, pushshift_directory):
     return posts
 
 
-def most_common(lst):
-    counts = {}
-    for item in lst:
-        counts[item] = counts.get(item, 0) + 1
-    return max(counts, key=counts.get)
-
 def get_data_from_user(username, parquet_sample, pushshift_directory):
     postlist = []
     for i in range(len(parquet_sample)):

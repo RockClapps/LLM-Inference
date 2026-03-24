@@ -63,3 +63,10 @@ def insert_catagories_to_prompt(prompt, prompt_catagories):
         catagories_string += "or " + prompt_catagories[-1]
     return prompt.replace(catagories_placeholder_string, catagories_string)
 
+
+def most_common_guess(lst):
+    counts = {}
+    for item in lst:
+        counts[item] = counts.get(item, 0) + 1
+    return max(counts, key=counts.get)
+
