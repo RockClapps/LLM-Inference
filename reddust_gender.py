@@ -15,9 +15,10 @@ enforce_min_posts = False
 num_guesses = 10
 output_file = 'output.csv'
 errors_file = 'errors.csv'
+temperature = 1
 random_seed = None 
 
 rpm.collect_data(reddust_file, model, prompt, prompt_catagories,
                  prompt_catagories_reddust_map, parquet_number_sample, max_posts,
                  enforce_min_posts, num_guesses, output_file, errors_file,
-                 random_seed=random_seed)
+                 temperature=temperature, random_seed=random_seed)
