@@ -1,6 +1,7 @@
 from ollama import generate
 from ollama import ChatResponse
 from ollama import chat
+import my_data_manager
 
 # Default values
 catagories_placeholder_string = "{options}"
@@ -35,7 +36,7 @@ def sanatize_model_output(output):
 
 def extract_guess(output, options):
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    sanatized = sanatize_model_output(output)
+    sanatized = sanatize_model_output(my_data_manager.unsanitize_from_csv(output))
     san_options = [sanatize_model_output(x) for x in options]
 
     for i in range(len(san_options)):
