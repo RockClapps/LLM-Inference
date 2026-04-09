@@ -1,5 +1,7 @@
 import sys
 import pandas as pd
+import llm_manager
+import matplotlib.pyplot as plt
 
 if len(sys.argv) < 2:
     print("Please provide a file argument")
@@ -8,40 +10,45 @@ if len(sys.argv) < 2:
 file = sys.argv[1]
 
 data = pd.read_csv(file)
-
-print(data.columns)
-print()
+#data = data.loc[data['num_posts'] == 10]
+#data = data.loc[data['answers_most'] != "INCONCLUSIVE"]
 
 def get_proportion_answers(llm_answers, answer):
     sp = llm_answers.split("|")
+    sp = [llm_manager.extract_guess(x, ["MALE", "FEMALE"]) for x in sp]
     return sp.count(answer)/len(sp)
 data["proportion_of_guesses_male"] = data["answers"].apply((lambda x:
-                                                            get_proportion_answers(x, "m")))
+                                                            get_proportion_answers(x,
+                                                                                   "MALE")))
 data["proportion_of_guesses_female"] = data["answers"].apply((lambda x:
-                                                            get_proportion_answers(x, "f")))
+                                                            get_proportion_answers(x,
+                                                                                   "FEMALE")))
 
 def get_inconclusive_answers(llm_answers, possible_answers):
     sp = llm_answers.split("|")
     count = 0
     for x in sp:
-        x = x.replace("{newline}", "").strip()
-        if x not in possible_answers:
+        guess = llm_manager.extract_guess(x, possible_answers)
+        if guess == "INCONCLUSIVE" and x != "":
             count += 1
             print(x)
-            print()
-            print()
-            print()
-            print()
+            print(llm_manager.separator)
     return count/len(sp)
 data["proportion_of_guesses_inconclusive"] = data["answers"].apply((lambda x:
-                                                                    get_inconclusive_answers(x, ["m", "f"])))
+                                                                    get_inconclusive_answers(x,
+                                                                                             ["MALE",
+                                                                                              "FEMALE",
+                                                                                              "INCONCLUSIVE"])))
+gendermap = {'f': "FEMALE", 'm': "MALE"}
+data['converted_answer'] = data['real_answer'].apply((lambda x: gendermap[x]))
 
 length = len(data)
 num_male = len(data.loc[data['real_answer'] == 'm'])
 num_female = len(data.loc[data['real_answer'] == 'f'])
 num_correct = len(data.loc[data['correct'] == True])
 num_incorrect = len(data.loc[data['correct'] == False])
-num_inconclusive = len(data.loc[data['answers_most'] != 'm'].loc[data['answers_most'] != 'f'])
+num_inconclusive = len(data.loc[data['answers_most'] !=
+                                'MALE'].loc[data['answers_most'] != 'FEMALE'])
 
 print("Length: %d" % length)
 print("Length of male: %d" % num_male)
@@ -68,17 +75,29 @@ print("Controlling for male and female proportions...")
 sample = min(num_male, num_female)//2
 males_sample = all_males.sample(sample)
 females_sample = all_females.sample(sample)
+total_sample = pd.concat([males_sample, females_sample])
 male_correct = len(males_sample.loc[data['correct'] == True])
 male_incorrect = len(males_sample.loc[data['correct'] == False])
 female_correct = len(females_sample.loc[data['correct'] == True])
 female_incorrect = len(females_sample.loc[data['correct'] == False])
 print("Sample: %d" % sample)
+print("Median posts: %f" % total_sample['num_posts'].median())
+print("Percent inferred male: %f" %
+      (len(total_sample.loc[total_sample['answers_most'] == 'MALE']) / (sample*2)))
+print("Percent inferred female: %f" %
+      (len(total_sample.loc[total_sample['answers_most'] == 'FEMALE']) / (sample*2)))
 print("Percent correct: %f" % ((male_correct+female_correct)/(sample*2)))
 print("Percent incorrect: %f" % ((male_incorrect+female_incorrect)/(sample*2)))
 print("Percent correct given male: %f" % (male_correct/sample))
 print("Percent incorrect given male: %f" % (male_incorrect/sample))
-print("Percent correct given female: %f" % (female_correct/sample))
-print("Percent incorrect given female: %f" % (female_incorrect/sample))
+print("Average proportion of female guesses on male datum: %f"
+      % males_sample["proportion_of_guesses_female"].mean())
+print("Average proportion of male guesses on female datum: %f"
+      % females_sample["proportion_of_guesses_male"].mean())
+print("Average proportion of male guesses on male datum: %f"
+      % males_sample["proportion_of_guesses_male"].mean())
+print("Average proportion of female guesses on female datum: %f"
+      % females_sample["proportion_of_guesses_female"].mean())
 print()
 
 print("Looking at guess proportions")
@@ -102,3 +121,56 @@ print("Average proportion of inconclusive answers on correct: %f" % data.loc[dat
 print("Average proportion of inconclusive answers on incorrect: %f" % data.loc[data['correct'] == False]["proportion_of_guesses_inconclusive"].mean())
 print("Average proportion of inconclusive answers incorrectly identified male datum: %f" % all_males.loc[data["correct"] == False]["proportion_of_guesses_inconclusive"].mean())
 print("Average proportion of inconclusive answers incorrectly identified female datum: %f" % all_females.loc[data["correct"] == False]["proportion_of_guesses_inconclusive"].mean())
+print()
+
+
+print("Formal Seats")
+totalCorrect = len(total_sample.loc[total_sample['answers_most'] ==
+                                    total_sample['converted_answer']])
+maleTP = len(males_sample.loc[males_sample['answers_most'] == "MALE"]) 
+maleFP = len(females_sample.loc[females_sample["answers_most"] == "MALE"])
+maleFN = len(males_sample.loc[males_sample["answers_most"] == "FEMALE"])
+maleAccuracy = totalCorrect / len(total_sample)
+malePrecision = maleTP / (maleTP + maleFP)
+maleRecall = maleTP / (maleTP + maleFN)
+maleF1 = 2 * ((malePrecision * maleRecall) / (malePrecision + maleRecall))
+print("Male Accuracy: %f" % maleAccuracy)
+print("Male Precision: %f" % malePrecision)
+print("Male Recall: %f" % maleRecall)
+print("Male F1: %f" % maleF1)
+
+
+femaleTP = len(females_sample.loc[females_sample['answers_most'] == "FEMALE"]) 
+femaleFP = len(males_sample.loc[males_sample["answers_most"] == "FEMALE"])
+femaleFN = len(females_sample.loc[females_sample["answers_most"] == "MALE"])
+femaleAccuracy = totalCorrect / len(total_sample)
+femalePrecision = femaleTP / (femaleTP + femaleFP)
+femaleRecall = femaleTP / (femaleTP + femaleFN)
+femaleF1 = 2 * ((femalePrecision * femaleRecall) / (femalePrecision + femaleRecall))
+print("Female Accuracy: %f" % femaleAccuracy)
+print("Female Precision: %f" % femalePrecision)
+print("Female Recall: %f" % femaleRecall)
+print("Female F1: %f" % femaleF1)
+
+apr_labels = ["Accuracy", "Precision", "Recall", "F1"]
+
+plt.bar(apr_labels, [maleAccuracy, malePrecision, maleRecall, maleF1])
+plt.ylim(0, 1)
+plt.title('Male Accuracy, Precision, Recall, and F1')
+plt.xlabel('Metric')
+plt.ylabel('')
+plt.savefig('male' + str(sample) + file + '.png')
+plt.close()
+
+plt.bar(apr_labels, [femaleAccuracy, femalePrecision, femaleRecall, femaleF1])
+plt.ylim(0, 1)
+plt.title('Female Accuracy, Precision, Recall, and F1')
+plt.xlabel('Metric')
+plt.ylabel('')
+plt.savefig('female' + str(sample) + file + '.png')
+plt.close()
+
+
+
+print("INCONC" + str(len(total_sample.loc[total_sample['answers_most'] !=
+                                      "INCONCLUSIVE"]) / len(total_sample)))
