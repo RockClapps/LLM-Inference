@@ -4,3 +4,6 @@ models/
 pushshift/
 reddust/
 ollamaBin/
+
+*.csv
+*.png
