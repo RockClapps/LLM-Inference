@@ -17,18 +17,21 @@ def preprocess():
     female_sample_authors = females['author'].unique()[:sample]
 
     data3 = pd.DataFrame()
-    data3['author'] = list(male_sample_authors) + list(female_sample_authors)
+    data3['username'] = list(male_sample_authors) + list(female_sample_authors)
     data3['posts'] = ''
-    data3['gender'] = ''
+    data3['real_answer'] = ''
+    data3['postid'] = ''
+    data3['num_posts'] = 0
 
     for i, datum in data3.iterrows():
-        author = datum['author']
+        author = datum['username']
         posts = data.loc[data['author'] == author]['text']
-        posts_sample = posts.sample(min(10, len(posts)))
         gender = data.loc[data['author'] == author]['sex'].iloc[0]
 
-        posts_to_csv = posts_sample.apply((lambda x: my_data_manager.sanitize_for_csv(x)))
+        posts_to_csv = posts.apply((lambda x: my_data_manager.sanitize_for_csv(x)))
 
         data3['posts'][i] = "|".join(posts_to_csv)
         data3['real_answer'][i] = gender_map[gender]
+        data3['postid'][i] = gender_map[gender]
+        data3['num_posts'][i] = len(posts_to_csv)
     data3.to_csv("synthpai/synthpai.jsonl.csv")
