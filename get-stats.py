@@ -39,12 +39,12 @@ data["proportion_of_guesses_inconclusive"] = data["answers"].apply((lambda x:
                                                                                              ["MALE",
                                                                                               "FEMALE",
                                                                                               "INCONCLUSIVE"])))
-gendermap = {'f': "FEMALE", 'm': "MALE"}
+gendermap = {'f': "FEMALE", 'm': "MALE", 'FEMALE': "FEMALE", 'MALE': "MALE"}
 data['converted_answer'] = data['real_answer'].apply((lambda x: gendermap[x]))
 
 length = len(data)
-num_male = len(data.loc[data['real_answer'] == 'm'])
-num_female = len(data.loc[data['real_answer'] == 'f'])
+num_male = len(data.loc[data['converted_answer'] == 'MALE'])
+num_female = len(data.loc[data['converted_answer'] == 'FEMALE'])
 num_correct = len(data.loc[data['correct'] == True])
 num_incorrect = len(data.loc[data['correct'] == False])
 num_inconclusive = len(data.loc[data['answers_most'] !=
@@ -59,8 +59,8 @@ print("Number inconclusive: %d" % num_inconclusive)
 print("Percent inconclusive: %f" % (num_inconclusive/length))
 print()
 
-all_males = data.loc[data['real_answer'] == 'm']
-all_females = data.loc[data['real_answer'] == 'f']
+all_males = data.loc[data['converted_answer'] == 'MALE']
+all_females = data.loc[data['converted_answer'] == 'FEMALE']
 male_correct = len(all_males.loc[data['correct'] == True])
 male_incorrect = len(all_males.loc[data['correct'] == False])
 female_correct = len(all_females.loc[data['correct'] == True])
