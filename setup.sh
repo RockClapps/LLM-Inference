@@ -1,6 +1,7 @@
 #!/bin/bash
 
-python downloaddataset.py
+python download-pushshift.py
+python download-synthpai.py
 
 ./getRedDust.sh
 

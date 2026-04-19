@@ -4,6 +4,7 @@ models/
 pushshift/
 reddust/
 ollamaBin/
+synthpai/
 
 *.csv
 *.png

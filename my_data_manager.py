@@ -70,7 +70,7 @@ def collect_data(inputfile, model, prompt, prompt_catagories,
         postlist = datum["posts"].split("|")
         random_posts = "|".join(list(random.sample(postlist, min(max_posts,
                                                         len(postlist)))))
-        for i in range(num_guesses):
+        for j in range(num_guesses):
             guess = llm_manager.guess_value(random_posts, model, prompt,
                                             prompt_catagories,
                                             temperature=temperature)
