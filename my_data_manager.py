@@ -20,7 +20,7 @@ def export_to(file, postid, username, num_posts, model, temperature, real_answer
         Headfile.write("postid,username,num_posts,model,temperature,real_answer,correct,answers_most,prompt,posts,answers\n")
         Headfile.close()
     file = open(file, "a")
-    file.write(postid + ",")
+    file.write(str(postid) + ",")
     file.write(username + ",")
     file.write(str(num_posts) + ",")
     file.write(model + ",")
