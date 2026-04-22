@@ -9,11 +9,7 @@ catagories_placeholder_string = "{options}"
 separator = '\n\n--------------------------------------------\n\n'
 
 def generate_post(context, model, prompt, optional_disclosure="", think=False, temperature=None, seed=None):
-    model_input = ""
-    if catagories_placeholder_string in prompt:
-        model_input = context + separator + prompt.replace(catagories_placeholder_string, optional_disclosure)
-    else:
-        model_input = context + separator + prompt
+    model_input = context + separator + insert_optional_disclosure_to_prompt(prompt, optional_disclosure)
 
     options = {}
     if seed is not None:
@@ -85,6 +81,8 @@ def insert_catagories_to_prompt(prompt, prompt_catagories):
         catagories_string += "or " + prompt_catagories[-1]
     return prompt.replace(catagories_placeholder_string, catagories_string)
 
+def insert_optional_disclosure_to_prompt(prompt, disclosure):
+    return prompt.replace(catagories_placeholder_string, disclosure)
 
 def most_common_guess(lst):
     counts = {}
