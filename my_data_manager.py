@@ -68,7 +68,7 @@ def collect_data(inputfile, model, prompt, prompt_catagories,
         print("%d/%d" % (i+1, len(data.index)))
         guesses = []
         postlist = datum["posts"].split("|")
-        random_posts = "|".join(list(random.sample(postlist, min(max_posts,
+        random_posts = "\n\n\n\n".join(list(random.sample(postlist, min(max_posts,
                                                         len(postlist)))))
         for j in range(num_guesses):
             guess = llm_manager.guess_value(random_posts, model, prompt,
@@ -104,8 +104,8 @@ def generate_and_collect_data(inputfile, model, prompt, prompt_catagories,
         postlist = datum["posts"].split("|")
 
         generated_posts = []
-        for j in range(num_posts_to_generate):
-            random_real_posts = "|".join(list(random.sample(postlist, min(max_posts,
+        for j in range(min(num_posts_to_generate, len(postlist))):
+            random_real_posts = "\n\n\n\n".join(list(random.sample(postlist, min(max_posts,
                                                             len(postlist)))))
             gen_posts = llm_manager.generate_post(random_real_posts, model, prompt,
                                             optional_disclosure=mapped_answer,
@@ -128,8 +128,10 @@ def generate_and_collect_data(inputfile, model, prompt, prompt_catagories,
         else:
             print("WE LOST :(")
 
-        export_to(output_file, datum["postid"], datum["username"], min(max_posts,
-                                                                       len(postlist)),
-                  model, temperature, datum["real_answer"], consensus,
-                  llm_manager.insert_catagories_to_prompt(prompt, prompt_catagories),
-                  random_posts, guesses)
+        export_to_plus_generated(output_file, datum["postid"], datum["username"],
+                                 min(max_posts, len(postlist)), model, temperature,
+                                 datum["real_answer"], consensus, generation_prompt,
+                                 llm_manager.insert_catagories_to_prompt(guess_prompt,
+                                                                         prompt_catagories),
+                                 "\n\n\n\n".join(postlist),
+                                 random_posts, guesses)
