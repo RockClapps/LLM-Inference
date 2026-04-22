@@ -36,6 +36,31 @@ def export_to(file, postid, username, num_posts, model, temperature, real_answer
     file.write("\n")
     file.close()
 
+def export_to_plus_generated(file, postid, username, num_posts, model, temperature,
+                             real_answer, answers_consensus, generate_prompt,
+                             guess_prompt, original_posts, generated_posts, answers):
+    if not os.path.exists(file):
+        Headfile = open(file, "w")
+        Headfile.write("postid,username,num_posts,model,temperature,real_answer,correct,answers_most,generate_prompt,guess_prompt,original_posts,generated_posts,answers\n")
+        Headfile.close()
+    file = open(file, "a")
+    file.write(str(postid) + ",")
+    file.write(username + ",")
+    file.write(str(num_posts) + ",")
+    file.write(model + ",")
+    file.write(str(temperature) + ",")
+    file.write(real_answer + ",")
+    file.write(str(real_answer == answers_consensus) + ",")
+    file.write(sanitize_for_csv(answers_consensus) + ",")
+    file.write(sanitize_for_csv(generate_prompt) + ",")
+    file.write(sanitize_for_csv(guess_prompt) + ",")
+    file.write(sanitize_for_csv(original_posts).replace("{newline}{newline}{newline}{newline}", "|") + ",")
+    file.write(sanitize_for_csv(generated_posts).replace("{newline}{newline}{newline}{newline}", "|") + ",")
+    for x in answers:
+        file.write(sanitize_for_csv(x) + "|")
+    file.write("\n")
+    file.close()
+
 def write_error(file, username, postid1, value1, postid2, value2):
     if not os.path.exists(file):
         Headfile = open(file, "w")
@@ -90,7 +115,7 @@ def collect_data(inputfile, model, prompt, prompt_catagories,
                   random_posts, guesses)
 
 
-def generate_and_collect_data(inputfile, model, prompt, prompt_catagories,
+def generate_and_collect_data(inputfile, model, generation_prompt, guess_prompt, prompt_catagories,
                  prompt_catagories_reddust_map, num_posts_to_generate, max_posts, num_guesses, output_file,
                  temperature=1, random_seed=None):
 
@@ -107,7 +132,8 @@ def generate_and_collect_data(inputfile, model, prompt, prompt_catagories,
         for j in range(min(num_posts_to_generate, len(postlist))):
             random_real_posts = "\n\n\n\n".join(list(random.sample(postlist, min(max_posts,
                                                             len(postlist)))))
-            gen_posts = llm_manager.generate_post(random_real_posts, model, prompt,
+            gen_posts = llm_manager.generate_post(random_real_posts, model,
+                                                  generation_prompt,
                                             optional_disclosure=mapped_answer,
                                             temperature=temperature)
             generated_posts.append(gen_posts)
@@ -117,7 +143,7 @@ def generate_and_collect_data(inputfile, model, prompt, prompt_catagories,
                                                         len(generated_posts)))))
         guesses = []
         for j in range(num_guesses):
-            guess = llm_manager.guess_value(random_posts, model, prompt,
+            guess = llm_manager.guess_value(random_posts, model, guess_prompt,
                                             prompt_catagories,
                                             temperature=temperature)
             guesses.append(guess)
