@@ -62,7 +62,7 @@ def collect_data(inputfile, model, prompt, prompt_catagories,
     for i, datum in data.iterrows():
         print("%d/%d" % (i+1, len(data.index)))
         guesses = []
-        for i in range(num_guesses):
+        for j in range(num_guesses):
             guess = llm_manager.guess_value(datum["posts"], model, prompt,
                                             prompt_catagories,
                                             temperature=temperature)
