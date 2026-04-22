@@ -42,8 +42,8 @@ def extract_guess(output, options):
     for i in range(len(san_options)):
         if sanatized == san_options[i]:
             return options[i]
-        if len(sanatized) > len(san_options[i]):
-            if san_options[i] == sanatized[:len(san_options[i])] and sanatized[len(san_options) + 1] not in alphabet:
+        if len(sanatized) >= len(san_options[i]):
+            if san_options[i] == sanatized[:len(san_options[i])] and sanatized[len(san_options[i]) + 1] not in alphabet:
                 return options[i]
 
     return "INCONCLUSIVE"
