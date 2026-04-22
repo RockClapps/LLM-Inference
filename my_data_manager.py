@@ -113,7 +113,7 @@ def generate_and_collect_data(inputfile, model, prompt, prompt_catagories,
             generated_posts.append(gen_posts)
 
 
-        random_posts = "|".join(list(random.sample(generated_posts, min(max_posts,
+        random_posts = "\n\n\n\n".join(list(random.sample(generated_posts, min(max_posts,
                                                         len(generated_posts)))))
         guesses = []
         for j in range(num_guesses):
