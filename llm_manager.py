@@ -8,6 +8,27 @@ catagories_placeholder_string = "{options}"
 
 separator = '\n\n--------------------------------------------\n\n'
 
+def generate_post(context, model, prompt, optional_disclosure="", think=False, temperature=None, seed=None):
+    model_input = ""
+    if catagories_placeholder_string in prompt:
+        model_input = context + separator + prompt.replace(catagories_placeholder_string, optional_disclosure)
+    else:
+        model_input = context + separator + prompt
+
+    options = {}
+    if seed is not None:
+        options["seed"] = seed
+    if temperature is not None:
+        if temperature > 1:
+            print("ERROR: temperature parameter must be between 0 and 1")
+            exit(1)
+        options["temperature"] = temperature
+
+    prediction = generate(
+        model=model, prompt=model_input, think=think,
+        options=options)
+    return prediction.get('response')
+
 def guess_value(context, model, prompt, prompt_catagories, think=False, temperature=None, seed=None):
     model_input = context + separator + insert_catagories_to_prompt(prompt,
                                                                  prompt_catagories)
